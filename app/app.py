@@ -34,6 +34,9 @@ def get_app():
         allow_headers=["*"],
     )
 
+    @app.get('/')
+    def root():
+        return {'message': 'Hello :)'}
     log.debug("Add application routes.")
     return app
 

@@ -1,8 +1,41 @@
+import logging
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-fast_app = FastAPI()
+from config import PROJECT_NAME, DEBUG, VERSION
+
+log = logging.getLogger(__name__)
 
 
-@fast_app.get("/")
-async def root():
-    return {"message": "Hello World"}
+def get_app():
+    """Initialize FastAPI application.
+    Returns:
+        app (FastAPI): Application object instance.
+    """
+    log.debug("Initialize FastAPI application node.")
+
+    app = FastAPI(
+        title=PROJECT_NAME,
+        debug=DEBUG,
+        version=VERSION,
+        docs_url="/swagger",
+    )
+
+    origins = [
+        "http://localhost",
+        "http://localhost:8080",
+    ]
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    log.debug("Add application routes.")
+    return app
+
+
+application = get_app()

@@ -1,8 +1,5 @@
 import logging
-from fastapi.responses import JSONResponse
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from app_folder.get_db import get_db
+from fastapi import APIRouter
 from app_folder.schemas.api import ReadyResponse
 
 

@@ -3,8 +3,10 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routes import router_ready
+
 from config import PROJECT_NAME, DEBUG, VERSION
+
+
 log = logging.getLogger(__name__)
 
 
@@ -35,8 +37,10 @@ def get_app():
         allow_headers=["*"],
     )
 
+    from routes import router_ready, router_auth, router_user
     app.include_router(router_ready)
-
+    app.include_router(router_auth)
+    app.include_router(router_user)
     log.debug("Add application routes.")
     return app
 

@@ -9,7 +9,7 @@ from app_folder.get_db import get_db
 from app_folder.schemas.user import UserRegisterIn, UserRegisterOut, Token, UserLoginIn, FailResponse
 from app_folder.crud.user import get_user_by_email, register_user, get_user_by_username
 from config import ACCESS_TOKEN_EXPIRE_MINUTES
-from tools.jwt_manage import create_access_token, authenticate_user
+from app_folder.tools.jwt_manage import create_access_token, authenticate_user
 
 auth_route = APIRouter()
 

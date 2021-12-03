@@ -1,9 +1,10 @@
 import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from routes import router_ready
 from config import PROJECT_NAME, DEBUG, VERSION
-
 log = logging.getLogger(__name__)
 
 
@@ -34,9 +35,8 @@ def get_app():
         allow_headers=["*"],
     )
 
-    @app.get('/')
-    def root():
-        return {'message': 'Hello :)'}
+    app.include_router(router_ready)
+
     log.debug("Add application routes.")
     return app
 

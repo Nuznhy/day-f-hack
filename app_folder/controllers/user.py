@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app_folder.schemas.user import UserDataOut
-from tools.jwt_manage import get_current_active_user
+from app_folder.tools.jwt_manage import get_current_active_user
 
 user_route = APIRouter()
 

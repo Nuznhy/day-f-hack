@@ -1,13 +1,25 @@
 import uuid
 from datetime import datetime
 import re
-
-from pydantic import BaseModel, ValidationError, validator
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, ValidationError, validator, Field
 from typing import Optional
 
 
 class UserBase(BaseModel):
     email: str
+
+
+class UserLoginIn(UserBase):
+    password: str
+
+    class Config:
+        schema_extra = {
+            'example': {
+                'email': 'email',
+                'password': 'password'
+            }
+        }
 
 
 class Token(BaseModel):
@@ -30,25 +42,22 @@ class UserRegisterIn(BaseModel):
     image: Optional[str]
 
     @validator('username')
-    def username_validate(name):
-        if ' ' in name:
-            raise ValidationError('must not have spaces')
-        return name
+    def check_username(cls, value: str):
+        if ' ' in value:
+            raise ValueError('must not have spaces')
+        return value
 
     @validator('password')
-    def password_validate(password):
-        if not re.fullmatch(r'[A-Za-z0-9]{8,64}', str(password)):
-            raise ValidationError('password must has at least 8 symbols, number and capital')
-        return password
+    def validate_password(cls, value: str):
+        if not re.fullmatch(r'[A-Za-z0-9]{8,64}', value):
+            raise ValueError('password must has at least 8 symbols, number and capital')
+        return value
 
-    class Config:
-        schema_extra = {
-            'example': {
-                'success': True,
-                'access_token': 'token',
-                'token_type': 'Bearer',
-            }
-        }
+    @validator('email')
+    def validate_email(cls, value: str):
+        if ' ' in value:
+            raise ValueError('not valid email')
+        return value
 
 
 class UserRegisterOut(BaseModel):
@@ -86,20 +95,8 @@ class UserDataOut(BaseModel):
                 'last_name': 'Surname',
                 'image': 'data:image/png;base64,blalblalba',
                 'registration_date:': 'int'
+                }
             }
-        }
-
-
-class UserLoginIn(UserBase):
-    password: str
-
-    class Config:
-        schema_extra = {
-            'example': {
-                'email': 'email',
-                'password': 'password'
-            }
-        }
 
 
 class FailResponse(BaseModel):

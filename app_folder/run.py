@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 from config import PROJECT_NAME, DEBUG, VERSION
-from scheduler_tasks import scheduler_app
+from app_folder.scheduler_tasks import scheduler_app
 
 log = logging.getLogger(__name__)
 logging.getLogger('apscheduler').setLevel(logging.DEBUG)

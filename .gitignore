@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 alembic
 alembic.ini
+requirements.txt
 # Pycharm
 .idea
 
@@ -131,3 +132,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Sqtile jobstore for scheduler
+jobs.db

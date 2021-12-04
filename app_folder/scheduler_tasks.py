@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from config import BASEDIR
 from app_folder.models.tasks import Task
-from app_folder.get_db import get_db
+from app_folder.get_db import MySuperContextManager
 
 jobstores = {
     'sqlite': SQLAlchemyJobStore(url='sqlite:///'+BASEDIR+'/jobs.db')
@@ -30,16 +30,17 @@ scheduler_app.configure(jobstores=jobstores,
                         timezone=utc)
 
 
-def mark_result_on_deadline(task_id: int, db: Session = Depends(get_db)):
-    task = db.query(Task).get(task_id)
-    print('meme')
-    if task is None:
-        print('probleme')
-        return False
-    task.result = False
-    db.add(task)
-    db.commit()
-    db.refresh(task)
+def mark_result_on_deadline(task_id: int):
+    with MySuperContextManager() as db:
+        task = db.query(Task).get(task_id)
+        print('meme')
+        if task is None:
+            print('probleme')
+            return False
+        task.result = False
+        db.add(task)
+        db.commit()
+        db.refresh(task)
 
 
 def print_jobs_cron():

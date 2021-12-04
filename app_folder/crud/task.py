@@ -1,10 +1,11 @@
+from contextvars import ContextVar
+import random
 import datetime as dt
 from paginate_sqlalchemy import SqlalchemyOrmPage
 from sqlalchemy import asc
 from sqlalchemy.orm import Session
 from app_folder.schemas.task import TaskIn
 from app_folder.models.tasks import Task, TaskHashtag, UserHashtag
-import random
 from app_folder.scheduler_tasks import scheduler_app, mark_result_on_deadline
 
 colors = [('428DFD', 'B6D3FF'), ('39E769', 'B6FFC6'), ('E9E444', 'FEFFB6'), ('D01BFD', 'F5B6FF'), ('FD42B2', 'FFB6F8'),
@@ -26,7 +27,7 @@ def create_add(db: Session, task: TaskIn, user_id: int):
                               func=mark_result_on_deadline,
                               trigger='date',
                               run_date=dt.datetime.utcfromtimestamp(task.deadline),
-                              args=[task_record.id, db],
+                              args=[task_record.id],
                               misfire_grace_time=None)
     meme_list = scheduler_app.get_jobs()
     for job in meme_list:

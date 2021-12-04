@@ -1,9 +1,20 @@
 from app_folder.database import SessionLocal
+from contextvars import ContextVar
+from sqlalchemy.orm import Session
 
 
-def get_db():
-    db = SessionLocal()
-    try:
+async def get_db():
+    with MySuperContextManager() as db:
         yield db
-    finally:
-        db.close()
+
+
+class MySuperContextManager:
+    def __init__(self):
+        self.db = SessionLocal()
+
+    def __enter__(self):
+        return self.db
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.db.close()
+

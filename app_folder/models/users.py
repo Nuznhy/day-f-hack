@@ -1,6 +1,6 @@
 
 import datetime
-from sqlalchemy import Column, String, DateTime, Integer
+from sqlalchemy import Column, String, DateTime, Integer, Float, Numeric
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from app_folder.database import Base
@@ -15,7 +15,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     first_name = Column(String)
     last_name = Column(String)
-    registration_date = Column(DateTime, default=datetime.datetime.utcnow())
+    registration_date = Column(Numeric, default=datetime.datetime.utcnow().timestamp())
     job = Column(String)
     image = Column(String)
 

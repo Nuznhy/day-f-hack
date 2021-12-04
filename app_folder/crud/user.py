@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from sqlalchemy.orm import Session
 from app_folder.tools.image_upload import image_upload
 # schemas

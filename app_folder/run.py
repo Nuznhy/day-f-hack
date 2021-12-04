@@ -37,10 +37,11 @@ def get_app():
         allow_headers=["*"],
     )
 
-    from routes import router_ready, router_auth, router_user
+    from routes import router_ready, router_auth, router_user, router_task
     app.include_router(router_ready)
     app.include_router(router_auth)
     app.include_router(router_user)
+    app.include_router(router_task)
     log.debug("Add application routes.")
     return app
 

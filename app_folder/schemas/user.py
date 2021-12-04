@@ -80,10 +80,10 @@ class UserDataOut(BaseModel):
     username: str
     email: str
     job: str
-    first_name: Optional[str]
-    last_name: Optional[str]
-    image: Optional[str]
-    registration_date: Optional[datetime]
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    image: Optional[str] = None
+    registration_date: float
 
     class Config:
         schema_extra = {

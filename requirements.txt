@@ -16,6 +16,8 @@ idna==3.3
 Jinja2==3.0.3
 Mako==1.1.6
 MarkupSafe==2.0.1
+paginate==0.5.6
+paginate-sqlalchemy==0.3.1
 passlib==1.7.4
 psycopg2==2.9.2
 pyasn1==0.4.8

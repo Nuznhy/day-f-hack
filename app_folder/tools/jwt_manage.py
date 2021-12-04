@@ -1,15 +1,14 @@
 from typing import Optional
+from datetime import datetime, timedelta
 
-from fastapi import Depends
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from app_folder.schemas.user import TokenData, UserDataOut
-from app_folder.get_db import get_db
-from app_folder.crud.user import get_user_by_email, get_user_by_uuid
+from fastapi.security import OAuth2PasswordBearer
 from config import SECRET_KEY, ALGORITHM
+from app_folder.schemas.user import TokenData
+from app_folder.get_db import get_db
+from app_folder.crud.user import get_user_by_email
 from app_folder.models.users import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -17,7 +16,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 def get_user_dict(db: Session, email: str):
     user = db.query(User).filter_by(email=email).first()
-    return user.__dict__
+    return user
 
 
 def authenticate_user(db: Session, email: str, password: str):
@@ -60,5 +59,5 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     return user
 
 
-async def get_current_active_user(current_user: UserDataOut = Depends(get_current_user)):
+async def get_current_active_user(current_user: User = Depends(get_current_user)):
     return current_user

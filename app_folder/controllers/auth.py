@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
-from pydantic import ValidationError
+
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -17,7 +17,9 @@ auth_route = APIRouter()
 
 @auth_route.post('/register',
                  response_model=UserRegisterOut,
-                 response_model_by_alias=True)
+                 response_model_by_alias=True,
+                 responses={409: {'model': FailResponse,
+                                  'description': 'Already registered or taken username'}})
 def register(user: UserRegisterIn,  db: Session = Depends(get_db)):
     user_db = get_user_by_email(db=db, user_email=user.email) or get_user_by_username(db=db, username=user.username)
     if user_db is not None:

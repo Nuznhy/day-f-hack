@@ -125,25 +125,39 @@ def task_complete(db: Session, task_id: int, user_id: int):
 
 # for Andre Stats
 def get_all_undone_tasks(db: Session, user_id: int):
-    task_query = db.query(Task).filter_by(user_id=user_id, result=None).order_by(asc(Task.deadline))
+    task_res_none = db.query(Task).filter_by(user_id=user_id, result=None).order_by(asc(Task.deadline)).all()
 
-    tasks = [r.__dict__ for r in task_query]
-    for task in tasks:
+    tasks_res_none = [r.__dict__ for r in task_res_none]
+    result_list = []
+    for task in tasks_res_none:
         tasks_hashtags_ids = [tag.hashtag_id for tag in
                               db.query(TaskHashtag).with_entities(TaskHashtag.hashtag_id).filter_by(task_id=task['id'])]
         pk = UserHashtag.__mapper__.primary_key[0]
         hashtags = db.query(UserHashtag).filter(pk.in_(tasks_hashtags_ids))
-        task.update({'hashtags': [r.__dict__ for r in hashtags]})
-    pagination = {'total': task_query.item_count, 'pages': task_query.page_count,
-                  'tasks': tasks}
+
+        tags = [r.__dict__['name'] for r in hashtags]
+        tags_string = ' '.join(tags)
+
+        task_dict = task.__dict__
+        task_dict.update({'hashtags': tags_string})
+        result_list.append(task_dict)
+    return tasks_res_none
 
 
 # for Andre Stats
 def get_all_done(db: Session, user_id: int):
-    return db.query(Task).filter_by(user_id=user_id).filter(Task.result is not None).all()
+    task_res_not_none = db.query(Task).filter_by(user_id=user_id).filter(Task.result != None).order_by(asc(Task.deadline)).all()
+    result_list = []
+    for task in task_res_not_none:
+        tasks_hashtags_ids = [tag.hashtag_id for tag in
+                              db.query(TaskHashtag).with_entities(TaskHashtag.hashtag_id).filter_by(task_id=task.id)]
+        pk = UserHashtag.__mapper__.primary_key[0]
+        hashtags = db.query(UserHashtag).filter(pk.in_(tasks_hashtags_ids))
 
+        tags = [r.__dict__['name'] for r in hashtags]
+        tags_string = ' '.join(tags)
 
-if __name__ == '__main__':
-    suka = dt.datetime.utcnow().timestamp()
-    print('1638636539')
-    print(suka)
+        task_dict = task.__dict__
+        task_dict.update({'hashtags': tags_string})
+        result_list.append(task_dict)
+    return result_list

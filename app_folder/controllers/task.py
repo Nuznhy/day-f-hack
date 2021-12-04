@@ -1,10 +1,12 @@
+import asyncio
 from typing import Optional
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app_folder.get_db import get_db
-from app_folder.crud.task import create_add, get_task_by_id, get_all_tasks, task_remove, edit_task, task_complete
+from app_folder.crud.task import create_add, get_task_by_id, get_all_tasks, task_remove, edit_task, task_complete, \
+    get_all_done, get_all_undone_tasks
 from app_folder.schemas.task import TaskIn, TaskOut, FailResponse, AllTasksOut
 from app_folder.tools.jwt_manage import get_current_active_user
 

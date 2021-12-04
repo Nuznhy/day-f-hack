@@ -1,16 +1,17 @@
-import uuid
+
 import datetime
-from sqlalchemy import Column, String, DateTime
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, DateTime, Integer
+
 from werkzeug.security import generate_password_hash, check_password_hash
 from app_folder.database import Base
 
 
 class User(Base):
     __tablename__ = 'users'
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    email = Column(String, nullable=False, unique=True)
-    username = Column(String, nullable=False, unique=True)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String, nullable=False, unique=True, index=True)
+    username = Column(String, nullable=False, unique=True, index=True)
     hashed_password = Column(String, nullable=False)
     first_name = Column(String)
     last_name = Column(String)

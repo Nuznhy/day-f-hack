@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 import re
 
@@ -36,7 +37,7 @@ class UserRegisterIn(BaseModel):
 
     @validator('password')
     def password_validate(password):
-        if not re.fullmatch(r'[A-Za-z0-9]{8,}', str(password)):
+        if not re.fullmatch(r'[A-Za-z0-9]{8,64}', str(password)):
             raise ValidationError('password must has at least 8 symbols, number and capital')
         return password
 
@@ -66,6 +67,7 @@ class UserRegisterOut(BaseModel):
 
 
 class UserDataOut(BaseModel):
+    id: int
     username: str
     email: str
     job: str

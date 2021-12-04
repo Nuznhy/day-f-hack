@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from config import BASEDIR
 from app_folder.models.tasks import Task
-from get_db import get_db
+from app_folder.get_db import get_db
 
 jobstores = {
     'sqlite': SQLAlchemyJobStore(url='sqlite:///'+BASEDIR+'/jobs.db')

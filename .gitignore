@@ -131,3 +131,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Sqtile jobstore for scheduler
+jobs.db

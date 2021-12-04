@@ -11,7 +11,7 @@ from app_folder.get_db import get_db
 from app_folder.crud.user import get_user_by_email
 from app_folder.models.users import User
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 def get_user_dict(db: Session, email: str):

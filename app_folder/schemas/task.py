@@ -1,6 +1,6 @@
 import datetime as dt
 from typing import Any, Optional, List
-from pydantic import BaseModel, validator, root_validator, create_model
+from pydantic import BaseModel, validator, root_validator
 
 
 class TaskIn(BaseModel):
@@ -11,6 +11,7 @@ class TaskIn(BaseModel):
     deadline: float
     duration_of_completing: Optional[float]
     start_time: Optional[float]
+    hashtags: List[str]
 
     @validator('name')
     def validate_name(cls, value: Any):
@@ -28,6 +29,15 @@ class TaskIn(BaseModel):
     def validate_start_time(cls, value: float):
         if value < dt.datetime.utcnow().timestamp():
             raise ValueError('start_time already passed')
+        return value
+
+    @validator('hashtags')
+    def validate_hashtags(cls, value):
+        if len(value) == 0:
+            raise ValueError('must have at least one hashtag')
+        for tag in value:
+            if tag[0] != '#' or ' ' in tag:
+                raise ValueError(tag+' is not valid hashtag')
         return value
 
     @root_validator()
@@ -54,6 +64,12 @@ class TaskIn(BaseModel):
         }
 
 
+class HashTagOut(BaseModel):
+    name: str
+    color: str
+    background_color: str
+
+
 class TaskOut(BaseModel):
     id: int = None
     user_id: int = None
@@ -67,6 +83,7 @@ class TaskOut(BaseModel):
     result: bool = None
     created_at: float = None
     completed_at: float = None
+    hashtags: List[HashTagOut]
 
 
 class AllTasksOut(BaseModel):
@@ -80,11 +97,5 @@ class FailResponse(BaseModel):
     message: str
 
 
-class HashtagIn(BaseModel):
-    name: str
-
-    @validator('name')
-    def validate_name(cls, value: Any):
-        if value == '' or ' ' in value or value is None:
-            raise ValueError('empty name')
-        return value
+class TaskCreateResponse(FailResponse):
+    task_id: int

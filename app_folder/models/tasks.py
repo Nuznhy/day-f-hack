@@ -21,23 +21,17 @@ class Task(Base):
     completed_at = Column(Numeric, default=None)
 
 
-class Hashtag(Base):
-    __tablename__ = 'hashtags'
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String, nullable=False, index=True)
-
-
 class TaskHashtag(Base):
-    __tablename__ = 'task-hashtag'
+    __tablename__ = 'task_hashtag'
 
     task_id = Column(Integer, ForeignKey('tasks.id'), primary_key=True)
-    hashtag_id = Column(Integer, ForeignKey('hashtags.id'), primary_key=True)
+    hashtag_id = Column(Integer, ForeignKey('user_hashtag.id'), primary_key=True)
 
 
 class UserHashtag(Base):
-    __tablename__ = 'user-hashtag'
-
-    hashtag_id = Column(Integer, ForeignKey('hashtags.id'), primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    __tablename__ = 'user_hashtag'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False, index=True)
     color = Column(String, nullable=False)
+    background_color = Column(String, nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'))

@@ -195,7 +195,7 @@ class Scheduling:
                         res[j] = tasks.loc[i, 'subtask_id_dummy']
                         break
             if not foundPlace:
-                if tasks['can_be_performed_after_dd']:
+                if tasks.loc[i, 'can_be_performed_after_dd']:
                     waiting_to_try.append(i)
                 else:
                     counter = 0

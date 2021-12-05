@@ -1,5 +1,7 @@
 import datetime
 import datetime as dt
+
+import numpy as np
 from pytz import utc
 from fastapi import Depends
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -62,7 +64,9 @@ def update_recs():
                 for old_rec in old_recommendations:
                     db.delete(old_rec)
                 for rec in recommendation:
-                    recommendation = TaskRecommendation(task_id=rec['id_task'], user_id=user_id,
+                    np_int = np.int64(rec['id_task'])
+                    id_task = np_int.item()
+                    recommendation = TaskRecommendation(task_id=id_task, user_id=user_id,
                                                         recommended_time=rec['recommended_time'])
                     db.add(recommendation)
                 db.commit()
@@ -73,9 +77,10 @@ def update_recs():
 # for Andre Stats
 def get_all_undone_tasks_for_sched(db: Session, user_id: int):
     task_res_none = db.query(Task).filter_by(user_id=user_id, result=None).order_by(asc(Task.deadline)).all()
-
     result_list = []
     for task in task_res_none:
+        if task.id == -1:
+            continue
         tasks_hashtags_ids = [tag.hashtag_id for tag in
                               db.query(TaskHashtag).with_entities(TaskHashtag.hashtag_id).filter_by(task_id=task.id)]
         pk = UserHashtag.__mapper__.primary_key[0]
@@ -84,7 +89,18 @@ def get_all_undone_tasks_for_sched(db: Session, user_id: int):
         tags = [r.__dict__['name'] for r in hashtags]
         tags_string = ' '.join(tags)
 
-        task_dict = task.__dict__
+        task_dict = {'id': task.id,
+                     'name': task.name,
+                     'user_id': task.user_id,
+                     'description': task.description,
+                     'importance': task.importance,
+                     'can_be_performed_after_dd': task.can_be_performed_after_dd,
+                     'result': task.result,
+                     'deadline': task.deadline,
+                     'duration_of_completing': task.duration_of_completing,
+                     'start_time': task.start_time,
+                     'created_at': task.created_at,
+                     'completed_at': task.completed_at}
         task_dict.update({'hashtags': tags_string})
         result_list.append(task_dict)
     return result_list
@@ -92,7 +108,8 @@ def get_all_undone_tasks_for_sched(db: Session, user_id: int):
 
 # for Andre Stats
 def get_all_done_for_sched(db: Session, user_id: int):
-    task_res_not_none = db.query(Task).filter_by(user_id=user_id).filter(Task.result != None).order_by(asc(Task.deadline)).all()
+    task_res_not_none = db.query(Task).filter_by(user_id=user_id).filter(Task.result != None).order_by(
+        asc(Task.deadline)).all()
     result_list = []
     for task in task_res_not_none:
         tasks_hashtags_ids = [tag.hashtag_id for tag in
@@ -103,7 +120,19 @@ def get_all_done_for_sched(db: Session, user_id: int):
         tags = [r.__dict__['name'] for r in hashtags]
         tags_string = ' '.join(tags)
 
-        task_dict = task.__dict__
+        task_dict = {'id': task.id,
+                     'name': task.name,
+                     'user_id': task.user_id,
+                     'description': task.description,
+                     'importance': task.importance,
+                     'can_be_performed_after_dd': task.can_be_performed_after_dd,
+                     'result': task.result,
+                     'deadline': task.deadline,
+                     'duration_of_completing': task.duration_of_completing,
+                     'start_time': task.start_time,
+                     'created_at': task.created_at,
+                     'completed_at': task.completed_at}
+
         task_dict.update({'hashtags': tags_string})
         result_list.append(task_dict)
     return result_list

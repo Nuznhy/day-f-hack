@@ -8,7 +8,7 @@ from fastapi import BackgroundTasks
 from apscheduler.jobstores.base import JobLookupError
 from sqlalchemy import asc
 from sqlalchemy.orm import Session
-
+import numpy as np
 from app_folder.schemas.task import TaskIn
 from app_folder.models.tasks import Task, TaskHashtag, UserHashtag, TaskRecommendation
 from app_folder.scheduler_tasks import scheduler_app, mark_result_on_deadline
@@ -22,8 +22,6 @@ colors = [('428DFD', 'B6D3FF'), ('39E769', 'B6FFC6'), ('E9E444', 'FEFFB6'), ('D0
 def calculate_new_recommendations(db: Session, user_id: int):
     done_tasks = get_all_done(db, user_id)
     undone_tasks = get_all_undone_tasks(db, user_id)
-    #print(done_tasks[0])
-    print(undone_tasks[0])
     # Andre part
     calculations = Scheduling()
     recommendation = calculations.tasksScheduling(undone_tasks, done_tasks)
@@ -32,7 +30,9 @@ def calculate_new_recommendations(db: Session, user_id: int):
     for old_rec in old_recommendations:
         db.delete(old_rec)
     for rec in recommendation:
-        recommendation = TaskRecommendation(task_id=rec['id_task'], user_id=user_id,
+        np_int = np.int64(rec['id_task'])
+        id_task = np_int.item()
+        recommendation = TaskRecommendation(task_id=id_task, user_id=user_id,
                                             recommended_time=rec['recommended_time'])
         db.add(recommendation)
     db.commit()

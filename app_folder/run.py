@@ -50,8 +50,8 @@ def get_app():
         else:
             scheduler_app.start()
             from app_folder.scheduler_tasks import update_recs
-            #scheduler_app.add_job(id='clear_daily_clicks', jobstore='sqlite', func=update_recs,
-            #                      trigger='cron', second=30, replace_existing=True)
+            scheduler_app.add_job(id='clear_daily_clicks', jobstore='sqlite', func=update_recs,
+                                  trigger='cron', minute=30, replace_existing=True)
             log.debug("Scheduler STARTED")
             jobs_list = scheduler_app.get_jobs()
             for job in jobs_list:

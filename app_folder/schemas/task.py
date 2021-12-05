@@ -15,7 +15,7 @@ class TaskIn(BaseModel):
 
     @validator('name')
     def validate_name(cls, value: Any):
-        if value == '' or ' ' in value or value is None:
+        if value == '' or value is None:
             raise ValueError('empty name')
         return value
 

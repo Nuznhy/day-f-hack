@@ -223,9 +223,13 @@ def deadlines(db: Session, user_id: int):
             pk = UserHashtag.__mapper__.primary_key[0]
             hashtags = db.query(UserHashtag).filter(pk.in_(tasks_hashtags_ids))
 
-            tags = [r.__dict__['name'] for r in hashtags]
+            hashtags_list = []
+            for tag in hashtags:
+                hashtags_list.append({'color': tag.color,
+                                      'background_color': tag.background_color,
+                                      'name': tag.name})
 
-            task_dict.update({'recommendation': rec.recommended_time, 'hashtags': tags})
+            task_dict.update({'recommendation': rec.recommended_time, 'hashtags': hashtags_list})
 
             result_list.append(task_dict)
     return {'tasks': result_list}

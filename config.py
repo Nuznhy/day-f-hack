@@ -13,6 +13,7 @@ BASEDIR = os.path.abspath(os.path.dirname(__file__))
 SECRET_KEY = 'e2f82a6ee04556df6146776dac7a08568973f97fc41be1bc5eea7d70ee709cd2'
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+MINDUR_HRS = 0.5
 
 cloudinary.config(
   cloud_name="hyrxwqaad",

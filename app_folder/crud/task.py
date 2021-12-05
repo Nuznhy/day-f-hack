@@ -1,11 +1,14 @@
+import logging
 import random
 import datetime as dt
 from copy import deepcopy
 
 from paginate_sqlalchemy import SqlalchemyOrmPage
 from fastapi import BackgroundTasks
+from apscheduler.jobstores.base import JobLookupError
 from sqlalchemy import asc
 from sqlalchemy.orm import Session
+
 from app_folder.schemas.task import TaskIn
 from app_folder.models.tasks import Task, TaskHashtag, UserHashtag, TaskRecommendation
 from app_folder.scheduler_tasks import scheduler_app, mark_result_on_deadline
@@ -19,6 +22,8 @@ colors = [('428DFD', 'B6D3FF'), ('39E769', 'B6FFC6'), ('E9E444', 'FEFFB6'), ('D0
 def calculate_new_recommendations(db: Session, user_id: int):
     done_tasks = get_all_done(db, user_id)
     undone_tasks = get_all_undone_tasks(db, user_id)
+    #print(done_tasks[0])
+    print(undone_tasks[0])
     # Andre part
     calculations = Scheduling()
     recommendation = calculations.tasksScheduling(undone_tasks, done_tasks)
@@ -61,7 +66,8 @@ def create_add(db: Session, task: TaskIn, user_id: int, background_tasks: Backgr
             tag_task = TaskHashtag(task_id=task_record.id, hashtag_id=user_tag.id)
             db.add(tag_task)
     db.commit()
-    #background_tasks.add_task(calculate_new_recommendations, db, user_id)
+    db.refresh(task_record)
+    background_tasks.add_task(calculate_new_recommendations, db, user_id)
     return task_record.id
 
 
@@ -119,7 +125,11 @@ def task_remove(db: Session, task_id: int, user_id: int):
     for tag in task_tags:
         db.delete(tag)
 
-    scheduler_app.remove_job('deadline_to_task_{}'.format(task.id))
+    try:
+        scheduler_app.remove_job('deadline_to_task_{}'.format(task.id))
+    except JobLookupError as e:
+        print(e)
+        pass
     db.commit()
     db.delete(task)
     db.commit()
@@ -131,6 +141,7 @@ def task_complete(db: Session, task_id: int, user_id: int):
     if task is None:
         return False
     task.result = True
+    task.completed_at = dt.datetime.utcnow().timestamp()
     db.add(task)
     db.commit()
     return True
@@ -139,9 +150,10 @@ def task_complete(db: Session, task_id: int, user_id: int):
 # for Andre Stats
 def get_all_undone_tasks(db: Session, user_id: int):
     task_res_none = db.query(Task).filter_by(user_id=user_id, result=None).order_by(asc(Task.deadline)).all()
-
     result_list = []
     for task in task_res_none:
+        if task.id == -1:
+            continue
         tasks_hashtags_ids = [tag.hashtag_id for tag in
                               db.query(TaskHashtag).with_entities(TaskHashtag.hashtag_id).filter_by(task_id=task.id)]
         pk = UserHashtag.__mapper__.primary_key[0]
@@ -150,7 +162,18 @@ def get_all_undone_tasks(db: Session, user_id: int):
         tags = [r.__dict__['name'] for r in hashtags]
         tags_string = ' '.join(tags)
 
-        task_dict = task.__dict__
+        task_dict = {'id': task.id,
+                     'name': task.name,
+                     'user_id': task.user_id,
+                     'description': task.description,
+                     'importance': task.importance,
+                     'can_be_performed_after_dd': task.can_be_performed_after_dd,
+                     'result': task.result,
+                     'deadline': task.deadline,
+                     'duration_of_completing': task.duration_of_completing,
+                     'start_time': task.start_time,
+                     'created_at': task.created_at,
+                     'completed_at': task.completed_at}
         task_dict.update({'hashtags': tags_string})
         result_list.append(task_dict)
     return result_list
@@ -169,7 +192,19 @@ def get_all_done(db: Session, user_id: int):
         tags = [r.__dict__['name'] for r in hashtags]
         tags_string = ' '.join(tags)
 
-        task_dict = task.__dict__
+        task_dict = {'id': task.id,
+                     'name': task.name,
+                     'user_id': task.user_id,
+                     'description': task.description,
+                     'importance': task.importance,
+                     'can_be_performed_after_dd': task.can_be_performed_after_dd,
+                     'result': task.result,
+                     'deadline': task.deadline,
+                     'duration_of_completing': task.duration_of_completing,
+                     'start_time': task.start_time,
+                     'created_at': task.created_at,
+                     'completed_at': task.completed_at}
+
         task_dict.update({'hashtags': tags_string})
         result_list.append(task_dict)
     return result_list
@@ -184,16 +219,13 @@ def deadlines(db: Session, user_id: int):
         if task is not None:
             task_dict = deepcopy(task.__dict__)
             tasks_hashtags_ids = [tag.hashtag_id for tag in
-                                  db.query(TaskHashtag).with_entities(TaskHashtag.hashtag_id).filter_by(
-                                      task_id=task.id)]
+                                  db.query(TaskHashtag).with_entities(TaskHashtag.hashtag_id).filter_by(task_id=task.id)]
             pk = UserHashtag.__mapper__.primary_key[0]
             hashtags = db.query(UserHashtag).filter(pk.in_(tasks_hashtags_ids))
 
             tags = [r.__dict__['name'] for r in hashtags]
 
             task_dict.update({'recommendation': rec.recommended_time, 'hashtags': tags})
-            result_list.append(task_dict)
 
-    for key, value in result_list[0].items():
-        print(str(key)+': '+str(value))
+            result_list.append(task_dict)
     return {'tasks': result_list}

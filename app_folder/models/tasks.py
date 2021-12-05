@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Column, String, Numeric, Integer, Boolean, ForeignKey
+from sqlalchemy import Column, String, Float, Integer, Boolean, ForeignKey
 from app_folder.database import Base
 
 
@@ -14,11 +14,11 @@ class Task(Base):
     importance = Column(Boolean, default=False)
     can_be_performed_after_dd = Column(Boolean, default=False)
     result = Column(Boolean, default=None)
-    deadline = Column(Numeric, nullable=False)
-    duration_of_completing = Column(Numeric, nullable=False)
-    start_time = Column(Numeric)
-    created_at = Column(Numeric, default=datetime.datetime.utcnow().timestamp())
-    completed_at = Column(Numeric, default=None)
+    deadline = Column(Float, nullable=False)
+    duration_of_completing = Column(Float, nullable=False)
+    start_time = Column(Float)
+    created_at = Column(Float, default=datetime.datetime.utcnow().timestamp())
+    completed_at = Column(Float, default=None)
 
 
 class TaskHashtag(Base):

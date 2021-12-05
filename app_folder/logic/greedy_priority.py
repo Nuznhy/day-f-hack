@@ -226,7 +226,7 @@ class Scheduling:
         if schedule[0] == -1:
             prevObj = {'id_task': -1, 'start_time': start, 'end_time': start + timedelta(minutes=30)}
         else:
-            id_task = tasks[schedule[0]]
+            id_task = tasks.loc[schedule[0], 'id']
             prevObj = {'id_task': id_task, 'start_time': start, 'end_time': start + timedelta(minutes=30)}
         for i in range(1, int(count)):
             if (schedule[i] == -1 and prevObj['id_task'] == -1) or tasks.loc[schedule[i], 'id'] == prevObj['id_task']:

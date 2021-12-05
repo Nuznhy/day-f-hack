@@ -6,7 +6,7 @@ def deadlines_priority(records: List[Dict]) -> List[int]:
     if None in deadlines:
         raise ValueError('deadline doesn\'t exist')
     lst = [x for x, y in sorted(enumerate(deadlines), key=lambda x: datetime.now() - x[1])]
-    return [max(lst) - lst
+    return [max(lst) - lst]
 
 if __name__=='__main__':
     print(deadlines_priority([

@@ -55,7 +55,7 @@ class UserRegisterIn(BaseModel):
 
     @validator('email')
     def validate_email(cls, value: str):
-        if ' ' in value:
+        if ' ' in value or '@' not in value:
             raise ValueError('not valid email')
         return value
 

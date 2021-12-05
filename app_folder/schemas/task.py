@@ -83,7 +83,15 @@ class TaskOut(BaseModel):
     result: bool = None
     created_at: float = None
     completed_at: float = None
-    hashtags: List[HashTagOut]
+    hashtags: List[HashTagOut] = []
+
+
+class TaskRecOut(TaskOut):
+    recommendation: str
+
+
+class AllTaskRecOut(BaseModel):
+    tasks: Optional[List[TaskRecOut]]
 
 
 class AllTasksOut(BaseModel):

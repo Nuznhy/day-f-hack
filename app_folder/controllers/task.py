@@ -1,11 +1,13 @@
+import asyncio
 from typing import Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, BackgroundTasks
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app_folder.get_db import get_db
-from app_folder.crud.task import create_add, get_task_by_id, get_all_tasks, task_remove, edit_task, task_complete
-from app_folder.schemas.task import TaskIn, TaskOut, FailResponse, AllTasksOut
+from app_folder.crud.task import create_add, get_task_by_id, get_all_tasks, task_remove, edit_task, task_complete, \
+    get_all_done, get_all_undone_tasks, deadlines
+from app_folder.schemas.task import TaskIn, TaskOut, FailResponse, AllTasksOut, AllTaskRecOut
 from app_folder.tools.jwt_manage import get_current_active_user
 
 task_route = APIRouter()
@@ -13,9 +15,9 @@ task_route = APIRouter()
 
 @task_route.post('/create', responses={200: {'model': FailResponse,
                                              'description': 'Updated'}})
-def create_task(task: TaskIn, db: Session = Depends(get_db),
+def create_task(task: TaskIn, background_tasks: BackgroundTasks, db: Session = Depends(get_db),
                 current_user=Depends(get_current_active_user)):
-    task_id = create_add(db=db, task=task, user_id=current_user.id)
+    task_id = create_add(db=db, task=task, user_id=current_user.id, background_tasks=background_tasks)
     return JSONResponse(status_code=200, content={'success': True, 'message': 'Task Created', 'task_id': task_id})
 
 
@@ -69,3 +71,9 @@ def task_mark_completed(task_id: int, db: Session = Depends(get_db), current_use
     if result:
         return JSONResponse(status_code=200, content={'success': True, 'message': 'Task Completed'})
     return JSONResponse(status_code=404, content={'success': False, 'message': 'Task with this ID not found'})
+
+
+@task_route.get('/get-recommendations', response_model=AllTaskRecOut)
+def show_recommendations(db: Session = Depends(get_db), current_user=Depends(get_current_active_user)):
+    result = deadlines(db=db, user_id=current_user.id)
+    return result

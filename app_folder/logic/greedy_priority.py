@@ -24,63 +24,73 @@ class Scheduling:
         self.hashtag_vectorizer = CountVectorizer(analyzer='word', max_features=15)
 
     def tasksScheduling(self, tasks: List[Dict], previousTasks: List[Dict]) -> List[Dict]:
+        if len(tasks) == 0:
+            raise ValueError('Got nothing')
         preparedTasksDF = self.tasksPreparation(tasks, previousTasks)
         devidedTasksDF = self.devide_tasks(preparedTasksDF)
         order = self.blank_algo(devidedTasksDF)
         return self.aggreagate(order, devidedTasksDF)
 
     def tasksPreparation(self, tasks: List[Dict], previousTasks: List[Dict]) -> pd.DataFrame:
-        tasksDF = pd.DataFrame(tasks)
-        previousTasksDF = pd.DataFrame(previousTasks)
-        namePrev_features = self.stemmed_vectorizer.fit_transform(previousTasksDF['name'])
-        namePrev_features_arr = namePrev_features.toarray()
-        name_features = self.stemmed_vectorizer.transform(tasksDF['name'])
-        name_features_arr = name_features.toarray()
-        name_features_names = self.stemmed_vectorizer.get_feature_names()
-        descriptionPrev_features = self.stemmed_vectorizer.fit_transform(previousTasksDF['description'])
-        descriptionPrev_features_arr = descriptionPrev_features.toarray()
-        description_features = self.stemmed_vectorizer.transform(tasksDF['description'])
-        description_features_arr = description_features.toarray()
-        descriptionPrev_hashtag_features = self.hashtag_vectorizer.fit_transform(previousTasksDF['hashtags'])
-        descriptionPrev_hashtag_features_arr = descriptionPrev_hashtag_features.toarray()
-        description_hashtag_features = self.hashtag_vectorizer.transform(tasksDF['hashtags'])
-        description_hashtag_features_arr = description_hashtag_features.toarray()
+        if len(previousTasks) > 0:
+            tasksDF = pd.DataFrame(tasks)
+            previousTasksDF = pd.DataFrame(previousTasks)
+            namePrev_features = self.stemmed_vectorizer.fit_transform(previousTasksDF['name'])
+            namePrev_features_arr = namePrev_features.toarray()
+            name_features = self.stemmed_vectorizer.transform(tasksDF['name'])
+            name_features_arr = name_features.toarray()
+            name_features_names = self.stemmed_vectorizer.get_feature_names()
+            descriptionPrev_features = self.stemmed_vectorizer.fit_transform(previousTasksDF['description'])
+            descriptionPrev_features_arr = descriptionPrev_features.toarray()
+            description_features = self.stemmed_vectorizer.transform(tasksDF['description'])
+            description_features_arr = description_features.toarray()
+            descriptionPrev_hashtag_features = self.hashtag_vectorizer.fit_transform(previousTasksDF['hashtags'])
+            descriptionPrev_hashtag_features_arr = descriptionPrev_hashtag_features.toarray()
+            description_hashtag_features = self.hashtag_vectorizer.transform(tasksDF['hashtags'])
+            description_hashtag_features_arr = description_hashtag_features.toarray()
 
-        previousTasksDF_prepared = pd.concat([previousTasksDF.drop(['description', 'hashtags', 'deadline', 'completed_at',
-                                                                    'result', 'start_time', 'duration_of_completing',
-                                                                    'can_be_performed_after_dd', 'importance', 'name'], axis=1),
-                                              pd.DataFrame(namePrev_features_arr, columns=name_features_names),
-                                              pd.DataFrame(descriptionPrev_features_arr, columns=self.stemmed_vectorizer.get_feature_names()),
-                                              pd.DataFrame(descriptionPrev_hashtag_features_arr, columns=self.hashtag_vectorizer.get_feature_names())
-                                              ], axis=1)
-        previousTasksDF_prepared.set_index('id', inplace=True)
+            previousTasksDF_prepared = pd.concat([previousTasksDF.drop(['description', 'hashtags', 'deadline', 'completed_at',
+                                                                        'result', 'start_time', 'duration_of_completing',
+                                                                        'can_be_performed_after_dd', 'importance', 'name'], axis=1),
+                                                  pd.DataFrame(namePrev_features_arr, columns=name_features_names),
+                                                  pd.DataFrame(descriptionPrev_features_arr, columns=self.stemmed_vectorizer.get_feature_names()),
+                                                  pd.DataFrame(descriptionPrev_hashtag_features_arr, columns=self.hashtag_vectorizer.get_feature_names())
+                                                  ], axis=1)
+            previousTasksDF_prepared.set_index('id', inplace=True)
 
-        tasksDF_prepared = pd.concat([tasksDF.drop(['description', 'hashtags', 'deadline', 'completed_at', 'result',
-                                                    'start_time', 'duration_of_completing',
-                                                    'can_be_performed_after_dd', 'importance', 'name'], axis=1),
-                                      pd.DataFrame(name_features_arr, columns=name_features_names),
-                                      pd.DataFrame(description_features_arr, columns=self.stemmed_vectorizer.get_feature_names()),
-                                      pd.DataFrame(description_hashtag_features_arr, columns=self.hashtag_vectorizer.get_feature_names())], axis=1)
-        tasksDF_prepared.set_index('id', inplace=True)
-        #increase: -1, 0, 1
-        y_train = pd.Series(previousTasksDF.apply(lambda x: 1 if not x['result'] or x['deadline'] < x['completed_at'] else -1 \
-            if (x['deadline'] - x['completed_at'])/x['duration_of_completing'] > 0.5 else 0, axis=1))
-        nb = MultinomialNB()
-        nb.fit(previousTasksDF_prepared, y_train)
-        y_pred = nb.predict(tasksDF_prepared)
-        tasksDF['y_pred'] = y_pred
-        tasksDF['start_time'] = tasksDF['start_time'].fillna(time.time())
-        tasksDF['estimated_dur'] = tasksDF.apply(lambda x: x['duration_of_completing'] if x['y_pred'] == 0 or
-                        round((x['deadline'] - x['start_time']), 3) == round(x['duration_of_completing'],3) else
-                        x['duration_of_completing']*0.8 if x['y_pred'] == -1 else
-                        x['duration_of_completing']*1.3, axis=1)
-        tasksDF['estimated_gap'] = tasksDF.apply(lambda x: int(x['duration_of_completing']*0.2) if x['y_pred'] == -1 else
-                                                 int(x['duration_of_completing']*0.4) if x['y_pred'] == 1 else
-                                                 int(x['duration_of_completing']*0.3), axis=1)
+            tasksDF_prepared = pd.concat([tasksDF.drop(['description', 'hashtags', 'deadline', 'completed_at', 'result',
+                                                        'start_time', 'duration_of_completing',
+                                                        'can_be_performed_after_dd', 'importance', 'name'], axis=1),
+                                          pd.DataFrame(name_features_arr, columns=name_features_names),
+                                          pd.DataFrame(description_features_arr, columns=self.stemmed_vectorizer.get_feature_names()),
+                                          pd.DataFrame(description_hashtag_features_arr, columns=self.hashtag_vectorizer.get_feature_names())], axis=1)
+            tasksDF_prepared.set_index('id', inplace=True)
+            #increase: -1, 0, 1
+            y_train = pd.Series(previousTasksDF.apply(lambda x: 1 if not x['result'] or x['deadline'] < x['completed_at'] else -1 \
+                if (x['deadline'] - x['completed_at'])/x['duration_of_completing'] > 0.5 else 0, axis=1))
+            nb = MultinomialNB()
+            nb.fit(previousTasksDF_prepared, y_train)
+            y_pred = nb.predict(tasksDF_prepared)
+            tasksDF['y_pred'] = y_pred
+            tasksDF['start_time'] = tasksDF['start_time'].fillna(time.time())
+            tasksDF['estimated_dur'] = tasksDF.apply(lambda x: x['duration_of_completing'] if x['y_pred'] == 0 or
+                            round((x['deadline'] - x['start_time']), 3) == round(x['duration_of_completing'],3) else
+                            x['duration_of_completing']*0.8 if x['y_pred'] == -1 else
+                            x['duration_of_completing']*1.3, axis=1)
+            tasksDF['estimated_gap'] = tasksDF.apply(lambda x: int(x['duration_of_completing']*0.2) if x['y_pred'] == -1 else
+                                                     int(x['duration_of_completing']*0.4) if x['y_pred'] == 1 else
+                                                     int(x['duration_of_completing']*0.3), axis=1)
 
-        del namePrev_features_arr, name_features_arr, descriptionPrev_features_arr, description_features_arr, \
-            descriptionPrev_hashtag_features_arr, description_hashtag_features_arr
-        return tasksDF
+            del namePrev_features_arr, name_features_arr, descriptionPrev_features_arr, description_features_arr, \
+                descriptionPrev_hashtag_features_arr, description_hashtag_features_arr
+            return tasksDF
+        else:
+            tasksDF = pd.DataFrame(tasks)
+            tasksDF['start_time'] = tasksDF['start_time'].fillna(time.time())
+            tasksDF['estimated_dur'] = tasksDF['duration_of_completing']
+            tasksDF['estimated_gap'] = tasksDF['duration_of_completing'].map(lambda x: int(x*0.3))
+            return tasksDF
+
 
 
     '''
@@ -250,20 +260,20 @@ if __name__ == '__main__':
     #     np.array([4, 2, 1, 4, 1, 1, 2])
     # ))
 
-
-    train_data = [{'id': 1, 'description': 'Агов, хлопче!. 14.4', 'hashtags': '#one #two',
-             'deadline': 3, 'completed_at': 2, 'result': True, 'start_time': 0, 'duration_of_completing': 1,
-                  'name': 'Something important', 'can_be_performed_after_dd': True, 'importance': True},
-            {'id': 2, 'description': 'Юхууу, вперед, хлоп. 13.3', 'hashtags': '#three #two',
-             'deadline': 4, 'completed_at': None, 'result': False, 'start_time': 1, 'duration_of_completing': 1,
-                  'name': 'Something important', 'can_be_performed_after_dd': True, 'importance': True},
-            {'id': 3, 'description': 'Я буду скоро йти назад. 16.6', 'hashtags': '#one',
-             'deadline': 2, 'completed_at': 2, 'result': True, 'start_time': 0, 'duration_of_completing': 1,
-                  'name': 'Something important', 'can_be_performed_after_dd': True, 'importance': True},
-            {'id': 4, 'description': 'Назад чи мною вийде піти, ага?', 'hashtags': '#two',
-             'deadline': 1, 'completed_at': 2, 'result': True, 'start_time': 0, 'duration_of_completing': 1,
-                  'name': 'Something important', 'can_be_performed_after_dd': True, 'importance': True}
-    ]
+    train_data = []
+    # train_data = [{'id': 1, 'description': 'Агов, хлопче!. 14.4', 'hashtags': '#one #two',
+    #          'deadline': 3, 'completed_at': 2, 'result': True, 'start_time': 0, 'duration_of_completing': 1,
+    #               'name': 'Something important', 'can_be_performed_after_dd': True, 'importance': True},
+    #         {'id': 2, 'description': 'Юхууу, вперед, хлоп. 13.3', 'hashtags': '#three #two',
+    #          'deadline': 4, 'completed_at': None, 'result': False, 'start_time': 1, 'duration_of_completing': 1,
+    #               'name': 'Something important', 'can_be_performed_after_dd': True, 'importance': True},
+    #         {'id': 3, 'description': 'Я буду скоро йти назад. 16.6', 'hashtags': '#one',
+    #          'deadline': 2, 'completed_at': 2, 'result': True, 'start_time': 0, 'duration_of_completing': 1,
+    #               'name': 'Something important', 'can_be_performed_after_dd': True, 'importance': True},
+    #         {'id': 4, 'description': 'Назад чи мною вийде піти, ага?', 'hashtags': '#two',
+    #          'deadline': 1, 'completed_at': 2, 'result': True, 'start_time': 0, 'duration_of_completing': 1,
+    #               'name': 'Something important', 'can_be_performed_after_dd': True, 'importance': True}
+    # ]
     test_data = [{'id': 1, 'description': 'Агов, хлопче!. 14.4', 'hashtags': '#one #one',
                 'deadline': 1638869999.12, 'completed_at': None, 'result': None, 'start_time': None,#1638669999.12,
                   'duration_of_completing': 1,

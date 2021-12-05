@@ -35,3 +35,12 @@ class UserHashtag(Base):
     color = Column(String, nullable=False)
     background_color = Column(String, nullable=False)
     user_id = Column(Integer, ForeignKey('users.id'))
+
+
+class TaskRecommendation(Base):
+    __tablename__ = 'task_recommendation'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    task_id = Column(Integer, ForeignKey('tasks.id'))
+    user_id = Column(Integer, ForeignKey('users.id'))
+    recommended_time = Column(String)

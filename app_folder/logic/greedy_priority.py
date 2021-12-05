@@ -2,10 +2,10 @@ from typing import List, Dict
 from datetime import timedelta, datetime
 import numpy as np
 import pandas as pd
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 import nltk.stem as st
-from ukrainian_stemmer import UkrainianStemmer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
+from app_folder.logic.ukrainian_stemmer import UkrainianStemmer
 
 
 class Scheduling:

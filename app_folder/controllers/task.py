@@ -73,7 +73,7 @@ def task_mark_completed(task_id: int, db: Session = Depends(get_db), current_use
     return JSONResponse(status_code=404, content={'success': False, 'message': 'Task with this ID not found'})
 
 
-@task_route.get('/get-recommendations', response_model=AllTaskRecOut)
+@task_route.get('/get-recommendations')
 def show_recommendations(db: Session = Depends(get_db), current_user=Depends(get_current_active_user)):
     result = deadlines(db=db, user_id=current_user.id)
     return result

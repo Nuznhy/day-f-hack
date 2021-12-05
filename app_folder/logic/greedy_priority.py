@@ -189,7 +189,7 @@ class Scheduling:
                     res[j] = tasks.loc[i, 'subtask_id_dummy']
                     break
             if not foundPlace:
-                for j in range(dead-gap, dead + 1):
+                for j in range(max(0, dead-gap), dead + 1):
                     if res[j] == -1:
                         foundPlace = True
                         res[j] = tasks.loc[i, 'subtask_id_dummy']
@@ -220,7 +220,7 @@ class Scheduling:
                  minute=(nextPartOfHour.minute if nextPartOfHour.hour >= startTimeHours and nextPartOfHour.hour < endTimeHours else
                          0))
         end = datetime(year=nextPartOfHour.year, month=nextPartOfHour.month, day=nextPartOfHour.day, hour=endTimeHours)
-        count = (end-start)/timedelta(hours=MINDUR_HRS)
+        count = min(int((end-start)/timedelta(hours=MINDUR_HRS)), len(tasks))
         if count == 0:
             return []
         if schedule[0] == -1:
@@ -229,12 +229,15 @@ class Scheduling:
             id_task = tasks.loc[schedule[0], 'id']
             prevObj = {'id_task': id_task, 'start_time': start, 'end_time': start + timedelta(minutes=30)}
         for i in range(1, int(count)):
-            if (schedule[i] == -1 and prevObj['id_task'] == -1) or tasks.loc[schedule[i], 'id'] == prevObj['id_task']:
+            if (schedule[i] == -1 and prevObj['id_task'] == -1) or (not schedule[i] == -1 and tasks.loc[schedule[i], 'id'] == prevObj['id_task']):
                 prevObj['end_time'] = prevObj['end_time'] + timedelta(minutes=30)
             else:
                 result.append({'id_task': prevObj['id_task'], 'recommended_time':
                     f'{(prevObj["start_time"].hour+2):02d}:{prevObj["start_time"].minute:02d}-{(prevObj["end_time"].hour+2):02d}:{prevObj["end_time"].minute:02d}'})
-                prevObj['id_task'] = tasks.loc[schedule[i], 'id']
+                if schedule[i] == -1:
+                    prevObj['id_task'] = -1
+                else:
+                    prevObj['id_task'] = tasks.loc[schedule[i], 'id']
                 prevObj['start_time'] = start + i*timedelta(minutes=30)
                 prevObj['end_time'] = start + (i+1)*timedelta(minutes=30)
         result.append({'id_task': prevObj['id_task'], 'recommended_time':
@@ -274,15 +277,16 @@ if __name__ == '__main__':
     #          'deadline': 1, 'completed_at': 2, 'result': True, 'start_time': 0, 'duration_of_completing': 1,
     #               'name': 'Something important', 'can_be_performed_after_dd': True, 'importance': True}
     # ]
-    test_data = [{'id': 1, 'description': 'Агов, хлопче!. 14.4', 'hashtags': '#one #one',
-                'deadline': 1638869999.12, 'completed_at': None, 'result': None, 'start_time': None,#1638669999.12,
-                  'duration_of_completing': 1,
-                  'name': 'Something important', 'can_be_performed_after_dd': True, 'importance': True},
-                 {'id': 2, 'description': 'Гей, Друже!. 14,4', 'hashtags': '#one #two',
-                  'deadline': 1638739999.12, 'completed_at': None, 'result': None, 'start_time': None,  # 1638669999.12,
-                  'duration_of_completing': 2,
-                  'name': 'Another important thing', 'can_be_performed_after_dd': True, 'importance': True}
-                 ]
+    # test_data = [{'id': 1, 'description': 'Агов, хлопче!. 14.4', 'hashtags': '#one #one',
+    #             'deadline': 1638869999.12, 'completed_at': None, 'result': None, 'start_time': None,#1638669999.12,
+    #               'duration_of_completing': 1,
+    #               'name': 'Something important', 'can_be_performed_after_dd': True, 'importance': True},
+    #              {'id': 2, 'description': 'Гей, Друже!. 14,4', 'hashtags': '#one #two',
+    #               'deadline': 1638739999.12, 'completed_at': None, 'result': None, 'start_time': None,  # 1638669999.12,
+    #               'duration_of_completing': 2,
+    #               'name': 'Another important thing', 'can_be_performed_after_dd': True, 'importance': True}
+    #              ]
+    test_data = [{'id': 32, 'name': 'meme', 'user_id': 1, 'description': 'desc', 'importance': False, 'can_be_performed_after_dd': True, 'result': None, 'deadline': 1638683621.0, 'duration_of_completing': 100.0, 'start_time': None, 'created_at': 1638669253.9777, 'completed_at': None, 'hashtags': '#onedsadsa #twodsasaa'}]
     sc = Scheduling()
     print(sc.tasksScheduling(test_data, train_data))
     # print(sc.calc_deadline_in_mindur(1638669999.12))

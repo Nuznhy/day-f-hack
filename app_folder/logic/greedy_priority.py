@@ -220,7 +220,7 @@ class Scheduling:
                  minute=(nextPartOfHour.minute if nextPartOfHour.hour >= startTimeHours and nextPartOfHour.hour < endTimeHours else
                          0))
         end = datetime(year=nextPartOfHour.year, month=nextPartOfHour.month, day=nextPartOfHour.day, hour=endTimeHours)
-        count = min(int((end-start)/timedelta(hours=MINDUR_HRS)), len(tasks))
+        count = int((end-start)/timedelta(hours=MINDUR_HRS))
         if count == 0:
             return []
         if schedule[0] == -1:
@@ -229,7 +229,14 @@ class Scheduling:
             id_task = tasks.loc[schedule[0], 'id']
             prevObj = {'id_task': id_task, 'start_time': start, 'end_time': start + timedelta(minutes=30)}
         for i in range(1, int(count)):
-            if (schedule[i] == -1 and prevObj['id_task'] == -1) or (not schedule[i] == -1 and tasks.loc[schedule[i], 'id'] == prevObj['id_task']):
+            if i >= len(tasks):
+                if prevObj['id_task'] == -1:
+                    prevObj['end_time'] = prevObj['end_time'] + timedelta(minutes=30)
+                else:
+                    prevObj['id_task'] = -1
+                    prevObj['start_time'] = start + i * timedelta(minutes=30)
+                    prevObj['end_time'] = start + (i + 1) * timedelta(minutes=30)
+            elif (schedule[i] == -1 and prevObj['id_task'] == -1) or (not schedule[i] == -1 and tasks.loc[schedule[i], 'id'] == prevObj['id_task']):
                 prevObj['end_time'] = prevObj['end_time'] + timedelta(minutes=30)
             else:
                 result.append({'id_task': prevObj['id_task'], 'recommended_time':
